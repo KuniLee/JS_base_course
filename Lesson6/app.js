@@ -17,14 +17,13 @@ function createModal({title, price, images}) {
             </div>
             <div class="modal-footer d-flex justify-content-between">
             <span>Цена ${price} рублей</span>
-<a href="#" class="btn btn-primary" data-buy="true">Купить</a>
-</div>
+            <a href="#" class="btn btn-primary" data-buy="true">Купить</a>
+        </div>
         </div>
     </div>`
     const $modal = document.createElement('div')
     $modal.classList.add("vmodal")
     $modal.insertAdjacentHTML('afterbegin', MODAL_TEMPLATE)
-
 
     if (images.length > 1) $modal.querySelector('.modal-image').insertAdjacentHTML("beforeend", `
                   <button class="carousel-control-prev"  data-changeImage="prev" type="button">
@@ -38,7 +37,6 @@ function createModal({title, price, images}) {
     `)
 
     document.body.prepend($modal)
-    $modal.querySelector(".modal-close").hidden = true
 
     const modal = {
         open() {
@@ -89,12 +87,9 @@ function createModal({title, price, images}) {
     return modal
 }
 
-
 const cart = {
     goodsList: [],
-
     countBasketPrice() {
-
         return this.goodsList.reduce((finalCost, {amount, productObj}) => finalCost += productObj.price * amount, 0)
     },
     addToBasket(product) {
@@ -155,26 +150,43 @@ const products = [
 const app = {
     updateCart() {
         const cartElement = document.querySelector(".navbar-text.cart")
-        cartElement.textContent = cart.renderCart()
         const button = document.querySelector('.navbar button.btn-danger')
+        const cartListWrapper = document.querySelector(".cartListWrap")
+        const cartList = cartListWrapper.querySelector('ul')
+        cartElement.textContent = cart.renderCart()
+        cartList.innerHTML = []
+        cartListWrapper.hidden = !cart.goodsList.length
         button.hidden = !cart.goodsList.length
+        cart.goodsList.forEach(({productObj, amount}) => {
+            cartList.insertAdjacentHTML('beforeend',
+                `<li class="list-group-item">${productObj.title}. ${amount} шт. Сумма: ${amount * productObj.price}руб.</li>`)
+        })
     },
 
     render() {
-        const HEADER_TEMPLATE = `
+        document.body.innerHTML = '';
+        document.body.insertAdjacentHTML("afterbegin", `
 <nav class="navbar navbar-dark bg-dark">
   <div class="container justify-content-end">
  <span class="navbar-text cart"></span>
     <button class="btn btn-danger ms-2">Удалить всё</button>
   </div>
-</nav>`
-        document.body.innerHTML = '';
-        document.body.insertAdjacentHTML("afterbegin", HEADER_TEMPLATE)
-        const catalog = document.createElement('div')
-        catalog.classList.add('container', 'py-2')
-        const row = document.createElement('div')
-        row.classList.add('row', 'g-2')
-        catalog.append(row)
+</nav>`)
+        document.body.insertAdjacentHTML("beforeend", `
+<div class="cartListWrap container">
+<h4>Корзина:</h4>
+<ul class="list-group list-group-numbered">
+</ul>
+</div>
+`)
+
+        document.body.insertAdjacentHTML("beforeend", `
+<div class="container py-2">
+<h4>Каталог:</h4>
+<div class="productList row g-2"></div>
+</div>
+`)
+        const row = document.body.querySelector(".productList")
         products.forEach(product => {
             const card = `<div class="col-4">
 <div class="card" data-id="${product.id}" >
@@ -184,14 +196,14 @@ const app = {
 <div class="card-body">
 <h5 class="card-title">${product.title}</h5>
 <p class="card-text">${product.price} руб.</p>
-<div class="d-flex justify-content-between"><a href="#" class="btn btn-info">Открыть</a>
-<a href="#" class="btn btn-primary">Купить</a></div>
+<div class="d-flex justify-content-between"><button class="btn btn-info">Открыть</button>
+<button class="btn btn-primary">Купить</button></div>
 </div>
 </div>
 </div>`
             row.insertAdjacentHTML("beforeend", card)
         })
-        document.body.insertAdjacentElement("beforeend", catalog)
+
     },
     start() {
         this.render()
