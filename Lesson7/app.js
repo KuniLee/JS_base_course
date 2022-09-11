@@ -1,9 +1,10 @@
-function createModal({title, price, images}) {
-    const ANIMATION_SPEED = 300
-    let closing = false
-    let destroyed = false
+const app = {
+    createModal({title, price, images}) {
+        const ANIMATION_SPEED = 300
+        let closing = false
+        let destroyed = false
 
-    const MODAL_TEMPLATE = `  <div class="modal-overlay" data-close="true">
+        const MODAL_TEMPLATE = `  <div class="modal-overlay" data-close="true">
         <div class="modal-window">
             <div class="modal-header">
                 <span class="modal-title">${title || "Продукт"}</span>
@@ -21,11 +22,11 @@ function createModal({title, price, images}) {
         </div>
         </div>
     </div>`
-    const $modal = document.createElement('div')
-    $modal.classList.add("vmodal")
-    $modal.insertAdjacentHTML('afterbegin', MODAL_TEMPLATE)
+        const $modal = document.createElement('div')
+        $modal.classList.add("vmodal")
+        $modal.insertAdjacentHTML('afterbegin', MODAL_TEMPLATE)
 
-    if (images.length > 1) $modal.querySelector('.modal-image').insertAdjacentHTML("beforeend", `
+        if (images.length > 1) $modal.querySelector('.modal-image').insertAdjacentHTML("beforeend", `
                   <button class="carousel-control-prev"  data-changeImage="prev" type="button">
     <span class="carousel-control-prev-icon" ></span>
     <span class="visually-hidden">Previous</span>
@@ -36,199 +37,71 @@ function createModal({title, price, images}) {
   </button>
     `)
 
-    document.body.prepend($modal)
+        document.body.prepend($modal)
 
-    const modal = {
-        open() {
-            if (!closing && !destroyed) {
+        const modal = {
+            open() {
+                if (!closing && !destroyed) {
+                    setTimeout(() => {
+                        $modal.classList.add("open")
+                    }, 0)
+                } else {
+                    return "unable"
+                }
+            }
+            ,
+
+            close() {
+                closing = true
+                $modal.classList.add("hiding")
+                $modal.classList.remove("open")
                 setTimeout(() => {
-                    $modal.classList.add("open")
-                }, 0)
-            } else {
-                return "unable"
+                    $modal.classList.remove("hiding")
+                    closing = false
+                    $modal.removeEventListener('click', listener)
+                    $modal.parentNode.removeChild($modal)
+                    destroyed = true
+                }, ANIMATION_SPEED)
+
             }
         }
-        ,
 
-        close() {
-            closing = true
-            $modal.classList.add("hiding")
-            $modal.classList.remove("open")
-            setTimeout(() => {
-                $modal.classList.remove("hiding")
-                closing = false
-                $modal.removeEventListener('click', listener)
-                $modal.parentNode.removeChild($modal)
-                destroyed = true
-            }, ANIMATION_SPEED)
-
+        const listener = event => {
+            if (event.target.dataset.buy) {
+                cart.addToBasket(arguments[0])
+                catalog.updateCart()
+                modal.close()
+            }
+            event.target.dataset.close && modal.close()
+            const changingImage = event.composedPath().reduce((where, el) => el.dataset?.changeimage ?? where, undefined)
+            if (changingImage) {
+                const image = $modal.querySelector('.modal-image img')
+                const current = images.indexOf(image.src)
+                const next = (current < images.length - 1) ? current + 1 : 0
+                const prev = (current > 0) ? current - 1 : images.length - 1
+                if (changingImage === "next") image.src = images[next]
+                if (changingImage === "prev") image.src = images[prev]
+            }
         }
-    }
 
-    const listener = event => {
-        if (event.target.dataset.buy) {
-            cart.addToBasket(arguments[0])
-            app.updateCart()
-            modal.close()
-        }
-        event.target.dataset.close && modal.close()
-        const changingImage = event.path.reduce((where, el) => el.dataset?.changeimage ?? where, undefined)
-        if (changingImage) {
-            const image = $modal.querySelector('.modal-image img')
-            const current = images.indexOf(image.src)
-            const next = (current < images.length - 1) ? current + 1 : 0
-            const prev = (current > 0) ? current - 1 : images.length - 1
-            if (changingImage === "next") image.src = images[next]
-            if (changingImage === "prev") image.src = images[prev]
-        }
-    }
-
-    $modal.addEventListener("click", listener)
-    return modal
-}
-
-const cart = {
-    goodsList: [],
-    countBasketPrice() {
-        return this.goodsList.reduce((finalCost, {amount, productObj}) => finalCost += productObj.price * amount, 0)
+        $modal.addEventListener("click", listener)
+        return modal
     },
-    addToBasket(product) {
-        const prodInCart = this.goodsList.find(el => el.productObj === product)
-        if (prodInCart) {
-            prodInCart.amount++
-        } else {
-            this.goodsList.push({
-                productObj: product,
-                amount: 1
-            })
-        }
-    },
-    renderCart() {
-        return this.goodsList.length ?
-            `В корзине: ${this.goodsList.length} товаров на сумму  ${this.countBasketPrice()} рублей` :
-            'Корзина пуста'
-    }
-}
-
-const products = [
-    {
-        id: 1,
-        title: 'Яблоки',
-        price: 20,
-        images: ['https://e1.edimdoma.ru/data/ingredients/0000/2374/2374-ed4_wide.jpg?1487746348',
-            'https://cdnn21.img.ria.ru/images/07e6/03/05/1776805509_0:0:3072:1728_1920x0_80_0_0_0ea5f9290b2d77fe9c88f083ebbae369.jpg',
-            'https://www.interfax.ru/ftproot/textphotos/2020/07/08/app700.jpg'
-        ]
-    },
-    {
-        id: 2,
-        title: 'Апельсины',
-        price: 30,
-        images: [
-            'https://fashion-stil.ru/wp-content/uploads/2019/04/apelsin-ispaniya-kg-92383155888981_small6.jpg'
-        ]
-    },
-    {
-        id: 3,
-        title: 'Манго',
-        price: 40,
-        images: [
-            'https://itsfresh.ru/upload/iblock/178/178d8253202ef1c7af13bdbd67ce65cd.jpg'
-        ]
-    },
-    {
-        id: 4,
-        title: 'Носки',
-        price: 55,
-        images: [
-            'https://saltmag.ru/media/articles/inner/2020/6300/11.jpg',
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSohbz4KeRMKT4fwxfuZ42XVr3QP88qhPN_ZA&usqp=CAU"
-        ]
-    },
-]
-
-const app = {
+    cart,
     updateCart() {
         const cartElement = document.querySelector(".navbar-text.cart")
-        const button = document.querySelector('.navbar button.btn-danger')
-        const cartListWrapper = document.querySelector(".cartListWrap")
-        const cartList = cartListWrapper.querySelector('ul')
-        cartElement.textContent = cart.renderCart()
-        cartList.innerHTML = []
-        cartListWrapper.hidden = !cart.goodsList.length
-        button.hidden = !cart.goodsList.length
-        cart.goodsList.forEach(({productObj, amount}) => {
-            cartList.insertAdjacentHTML('beforeend',
-                `<li class="list-group-item">${productObj.title}. ${amount} шт. Сумма: ${amount * productObj.price}руб.</li>`)
-        })
+        cartElement.textContent = this.cart.renderCart()
+        this.saveCartToLocalStorage()
     },
-
-    render() {
-        document.body.innerHTML = '';
-        document.body.insertAdjacentHTML("afterbegin", `
-<nav class="navbar navbar-dark bg-dark">
-  <div class="container justify-content-end">
- <span class="navbar-text cart"></span>
-    <button class="btn btn-danger ms-2">Удалить всё</button>
-  </div>
-</nav>`)
-        document.body.insertAdjacentHTML("beforeend", `
-<div class="cartListWrap container">
-<h4>Корзина:</h4>
-<ul class="list-group list-group-numbered">
-</ul>
-</div>
-`)
-
-        document.body.insertAdjacentHTML("beforeend", `
-<div class="container py-2">
-<h4>Каталог:</h4>
-<div class="productList row g-2"></div>
-</div>
-`)
-        const row = document.body.querySelector(".productList")
-        products.forEach(product => {
-            const card = `<div class="col-4">
-<div class="card" data-id="${product.id}" >
-<div style="height: 300px">
-<img src="${product.images[0]}" style="width: 100%; object-fit: cover;"  class="card-img-top" alt="img">
-</div>
-<div class="card-body">
-<h5 class="card-title">${product.title}</h5>
-<p class="card-text">${product.price} руб.</p>
-<div class="d-flex justify-content-between"><button class="btn btn-info">Открыть</button>
-<button class="btn btn-primary">Купить</button></div>
-</div>
-</div>
-</div>`
-            row.insertAdjacentHTML("beforeend", card)
-        })
-
+    saveCartToLocalStorage(){
+        localStorage.setItem('myCart', JSON.stringify(this.cart.goodsList));
+    },
+    readCartFromLocalStorage() {
+        this.cart.goodsList = JSON.parse(localStorage.getItem('myCart'))
     },
     start() {
+        this.readCartFromLocalStorage()
         this.render()
         this.updateCart()
-        const cards = document.getElementsByClassName('card')
-        const buttonClick = function (ev) {
-            const product = products.find(el => el.id == this.dataset.id)
-            if (ev.target.classList.contains('btn-info')) {
-                const modal = createModal(product)
-                modal.open()
-            }
-            if (ev.target.classList.contains('btn-primary')) {
-                cart.addToBasket(product)
-                app.updateCart()
-            }
-        }
-        for (let card of cards) {
-            card.addEventListener('click', buttonClick)
-        }
-        const clearCartButton = document.querySelector('.navbar button.btn-danger')
-        clearCartButton.addEventListener("click", () => {
-            cart.goodsList = []
-            this.updateCart()
-        })
-    }
+    },
 }
-
-app.start()
