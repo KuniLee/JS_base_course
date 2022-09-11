@@ -97,7 +97,7 @@ const app = {
         localStorage.setItem('myCart', JSON.stringify(this.cart.goodsList));
     },
     readCartFromLocalStorage() {
-        this.cart.goodsList = JSON.parse(localStorage.getItem('myCart'))
+        this.cart.goodsList = JSON.parse(localStorage.getItem('myCart')) || []
     },
     start() {
         this.readCartFromLocalStorage()
