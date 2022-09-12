@@ -1,0 +1,6 @@
+.rollable .rollable-item.close{
+    display: none;
+}
+.rollable h4{
+user-select: none;
+}

@@ -62,6 +62,7 @@ const app = {
                     $modal.parentNode.removeChild($modal)
                     destroyed = true
                 }, ANIMATION_SPEED)
+                document.removeEventListener("keydown", keyListener)
 
             }
         }
@@ -83,8 +84,19 @@ const app = {
                 if (changingImage === "prev") image.src = images[prev]
             }
         }
-
+        const keyListener = event => {
+            const key = event.key
+            if ((key === "ArrowLeft" || key === "ArrowRight")) {
+                const image = $modal.querySelector('.modal-image img')
+                const current = images.indexOf(image.src)
+                const next = (current < images.length - 1) ? current + 1 : 0
+                const prev = (current > 0) ? current - 1 : images.length - 1
+                if (key === "ArrowRight") image.src = images[next]
+                if (key === "ArrowLeft") image.src = images[prev]
+            }
+        }
         $modal.addEventListener("click", listener)
+        if (images.length > 1) document.addEventListener('keydown', keyListener);
         return modal
     },
     cart,
@@ -93,7 +105,7 @@ const app = {
         cartElement.textContent = this.cart.renderCart()
         this.saveCartToLocalStorage()
     },
-    saveCartToLocalStorage(){
+    saveCartToLocalStorage() {
         localStorage.setItem('myCart', JSON.stringify(this.cart.goodsList));
     },
     readCartFromLocalStorage() {

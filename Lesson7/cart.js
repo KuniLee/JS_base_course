@@ -15,9 +15,7 @@ const cart = {
         }
     },
     removeGood(index){
-        console.log(index)
         this.goodsList.splice(index, 1)
-
     },
     renderCart() {
         return this.goodsList.length ?
