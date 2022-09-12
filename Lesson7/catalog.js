@@ -90,7 +90,6 @@ const catalog = {
         for (let card of cards) {
             card.addEventListener('click', buttonClick.bind(this))
         }
-
     },
 
 }
