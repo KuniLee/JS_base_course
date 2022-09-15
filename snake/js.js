@@ -110,10 +110,11 @@ const snake = {
     direction: null,
     lastStepDirection: null,
 
-    init(startBody, direction) {
+    init(startBody, direction, rowsAmount, colsAmount) {
         this.body = startBody;
         this.direction = direction;
         this.lastStepDirection = direction;
+        this.getNextStepHeadPoint = this.myGet(rowsAmount,colsAmount)
     },
 
     getBody() {
@@ -152,20 +153,25 @@ const snake = {
         this.getBody().push(lastBodyPointClone);
     },
 
-    getNextStepHeadPoint() {
-        const firstPoint = this.getBody()[0];
-
-        switch (this.direction) {
-            case 'up':
-                return {x: firstPoint.x, y: firstPoint.y - 1};
-            case 'right':
-                return {x: firstPoint.x + 1, y: firstPoint.y};
-            case 'down':
-                return {x: firstPoint.x, y: firstPoint.y + 1};
-            case 'left':
-                return {x: firstPoint.x - 1, y: firstPoint.y};
+    myGet(rows, cols){
+        return function () {
+            const firstPoint = this.getBody()[0];
+            switch (this.direction) {
+                case 'up':
+                    return {x: firstPoint.x, y: firstPoint.y ? firstPoint.y - 1 : rows - 1};
+                case 'right':
+                    return {x: firstPoint.x === cols - 1 ? 0 : firstPoint.x + 1, y: firstPoint.y};
+                case 'down':
+                    return {x: firstPoint.x, y: firstPoint.y === rows -1 ? 0 : firstPoint.y + 1};
+                case 'left':
+                    return {x: firstPoint.x ? firstPoint.x - 1 : cols - 1, y: firstPoint.y};
+            }
         }
-    }
+
+
+    },
+
+
 };
 
 const food = {
@@ -290,7 +296,7 @@ const game = {
 
     reset() {
         this.stop();
-        this.snake.init(this.getStartSnakeBody(), 'up');
+        this.snake.init(this.getStartSnakeBody(), 'up', this.config.getRowsCount(),this.config.getColsCount());
         this.food.setCoordinates(this.getRandomFreeCoordinates());
         this.render();
     },
@@ -363,8 +369,8 @@ const game = {
         const nextHeadPoint = this.snake.getNextStepHeadPoint();
 
         return !this.snake.isOnPoint(nextHeadPoint) &&
-            nextHeadPoint.x < this.config.getColsCount() &&
-            nextHeadPoint.y < this.config.getRowsCount() &&
+            //nextHeadPoint.x < this.config.getColsCount() &&
+            //nextHeadPoint.y < this.config.getRowsCount() &&
             nextHeadPoint.x >= 0 &&
             nextHeadPoint.y >= 0;
     },
